@@ -86,7 +86,7 @@ export default function BotPage() {
     }
   };
 
-const BACKEND_URL = "http://15.165.203.198:8000"; // 👈 여기에 실제 FastAPI 서버 주소 입력
+const BACKEND_URL = "http://15.165.203.198:8000"; // 👉 실제 FastAPI 서버 주소로 고정
 
 const handleStartBot = async () => {
   if (!refCode) return;

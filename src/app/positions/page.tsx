@@ -19,7 +19,7 @@ export default function PositionPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:3001/api/sse');
+    const eventSource = new EventSource('http://15.165.203.198:8000/api/sse');
 
     eventSource.onopen = () => {
       console.log('✅ SSE 연결됨');
