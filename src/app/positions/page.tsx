@@ -19,7 +19,7 @@ export default function PositionPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const eventSource = new EventSource('http://aitrading.ac/api/sse');
+    const eventSource = new EventSource('https://aitrading.ac/api/sse');
 
     eventSource.onopen = () => {
       console.log('✅ SSE 연결됨');
