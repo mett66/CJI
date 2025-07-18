@@ -86,7 +86,7 @@ export default function BotPage() {
     }
   };
 
-const BACKEND_URL = "https://aitrading.ac"; // ✅ HTTPS로!
+const BACKEND_URL = "http://aitrading.ac"; // ✅ HTTPS로!
 
 const handleStartBot = async () => {
   if (!refCode) return;
