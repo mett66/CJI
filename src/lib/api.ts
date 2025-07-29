@@ -2,9 +2,9 @@ import { generateSignature } from './sign';
 
 const API_KEY = process.env.NEXT_PUBLIC_BITINUX_API_KEY!;
 const SECRET_KEY = process.env.NEXT_PUBLIC_BITINUX_SECRET_KEY!;
-const WS_URL = 'wss://fapi.bitunix.com/public';
+const WS_URL = 'wss://fapi.coinw.com/public';
 
-export function connectBitunixSocket(onData: (data: any) => void) {
+export function connectcoinwSocket(onData: (data: any) => void) {
   const timestamp = Math.floor(Date.now() / 1000);
   const nonce = Math.random().toString(36).substring(2, 18);
   const sign = generateSignature(API_KEY, SECRET_KEY, nonce, timestamp);

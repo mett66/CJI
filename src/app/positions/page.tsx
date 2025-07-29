@@ -51,7 +51,7 @@ export default function PositionPage() {
 
   return (
     <main className="min-h-screen bg-black text-white p-4">
-      <h1 className="text-2xl font-bold mb-4">📡 Bitunix 실시간 포지션</h1>
+      <h1 className="text-2xl font-bold mb-4">📡 coinw 실시간 포지션</h1>
 
       {error && <p className="text-red-500 mb-2">⚠️ {error}</p>}
       {!connected && !error && <p className="text-yellow-400 mb-2">⏳ 서버 연결 대기 중...</p>}

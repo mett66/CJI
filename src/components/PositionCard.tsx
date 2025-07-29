@@ -17,7 +17,7 @@ interface Props {
 export default function PositionCard({ position }: Props) {
   return (
     <div className="p-4 bg-zinc-900 text-white rounded-lg shadow-md border border-zinc-700">
-      <h2 className="text-lg font-bold mb-2">🧭 Bitunix 실시간 포지션</h2>
+      <h2 className="text-lg font-bold mb-2">🧭 coinw 실시간 포지션</h2>
       <div className="space-y-1 text-sm">
         <div>📌 <strong>종목:</strong> {position.symbol}</div>
         <div>📊 <strong>수량:</strong> {position.qty}</div>

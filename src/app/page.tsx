@@ -52,54 +52,7 @@ useEffect(() => {
         .maybeSingle();
 
       console.log("👤 유저 name 확인:", userData);
-
-      // ✅ 봇 세팅에 자동으로 기본값 저장 (없을 경우)
-// 1. 먼저 ref_code가 이미 존재하는지 확인
-const { data: existing, error: selectError } = await supabase
-  .from("bot_settings")
-  .select("id")
-  .eq("ref_code", userData.ref_code)
-  .maybeSingle();
-
-if (selectError) {
-  console.error("❌ 기존 데이터 조회 실패:", selectError);
-}
-
-// 2. 있으면 update, 없으면 insert
-let botError;
-
-if (existing) {
-  const { error } = await supabase
-    .from("bot_settings")
-    .update({
-      wallet_address: account.address.toLowerCase(),
-      name: userData.name || "",
-      symbol: "BTC",
-      entry_amount: null,
-      api_key: "",
-      secret_key: "",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("ref_code", userData.ref_code);
-  botError = error;
-} else {
-  const { error } = await supabase
-    .from("bot_settings")
-    .insert({
-      ref_code: userData.ref_code,
-      wallet_address: account.address.toLowerCase(),
-      name: userData.name || "",
-      symbol: "BTC",
-      entry_amount: null,
-      api_key: "",
-      secret_key: "",
-      updated_at: new Date().toISOString(),
-    });
-  botError = error;
-}
-
-
-
+      
       // ✅ 회원가입 정보 없으면 추가정보 입력 페이지로
       if (!userData || !userData.name || userData.name.trim() === "") {
         router.push("/register-info");

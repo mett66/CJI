@@ -53,7 +53,7 @@ export default function RegisterInfoPage() {
     if (error) {
       alert("저장 실패: " + error.message);
     } else {
-      router.push("/home");
+      router.push("/bot"); // ✅ 올바른 페이지로 이동
     }
   };
 
