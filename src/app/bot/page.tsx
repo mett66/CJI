@@ -130,7 +130,7 @@ const handleStartBot = async () => {
        .eq('wallet_address', account.address?.toLowerCase());
 
     try {
-      const result = await stopBot(account.address);
+      const result = await stopBot(refCode);  // ✅ 수정됨
       alert(`🛑 봇 중지: ${result.message || result.ref_code}`);
     } catch (e) {
       console.error(e);
