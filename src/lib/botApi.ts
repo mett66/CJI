@@ -2,7 +2,7 @@
 
 export async function startBot(refCode: string) {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/start-bot`, {
+    const res = await fetch("http://snowmart.co.kr:8000/start-bot", {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
