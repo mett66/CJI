@@ -47,7 +47,7 @@ export default function CoinwConnectModal({ refCode, onClose, onConnect }: Props
       if (!refCode) return;
 
       const { data, error } = await supabase
-        .from("bot_settings")
+        .from("users")
         .select("api_key, secret_key")
         .eq("ref_code", refCode)
         .eq("symbol", "XRP") // 기본값 symbol
@@ -80,7 +80,7 @@ export default function CoinwConnectModal({ refCode, onClose, onConnect }: Props
 
     const { error } = await (
       supabase
-        .from("bot_settings")
+        .from("users")
         .upsert(
           {
             ref_code: refCode,

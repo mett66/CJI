@@ -4,15 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveAccount } from "thirdweb/react";
 import { supabase } from "@/lib/supabaseClient";
+import { ChevronLeft } from "lucide-react"; // ← 아이콘용
 
 export default function RegisterInfoPage() {
   const account = useActiveAccount();
   const router = useRouter();
 
   const [name, setName] = useState("");
-  const [emailId, setEmailId] = useState(""); // @gmail.com 앞부분만 입력
-  const [phoneSuffix, setPhoneSuffix] = useState(""); // 010 뒤 8자리
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState(""); // 전체 이메일 입력
+  const [phone, setPhone] = useState(""); // +82 제외한 나머지 번호만 입력
 
   const handleSubmit = async () => {
     if (!account?.address) {
@@ -25,88 +25,95 @@ export default function RegisterInfoPage() {
       return;
     }
 
-    if (phoneSuffix.length !== 8) {
-      alert("휴대폰 번호 8자리를 정확히 입력해주세요.");
+    if (!email.trim().includes("@")) {
+      alert("올바른 이메일을 입력해주세요.");
       return;
     }
 
-    // ✅ 이름 중복 검사
-    const { data: existingName } = await supabase
-      .from("users")
-      .select("id")
-      .eq("name", name.trim())
-      .maybeSingle();
-
-    if (existingName) {
-      alert("이미 사용 중인 이름입니다. 다른 이름을 입력해주세요.");
+    if (phone.length < 9) {
+      alert("휴대폰 번호를 정확히 입력해주세요.");
       return;
     }
 
-    const email = `${emailId.trim()}@gmail.com`;
-    const phone = `010${phoneSuffix}`;
+    const fullPhone = `+82${phone}`;
 
     const { error } = await supabase
       .from("users")
-      .update({ name: name.trim(), email, phone })
+      .update({
+        name: name.trim(),
+        email: email.trim(),
+        phone: fullPhone,
+      })
       .eq("wallet_address", account.address.toLowerCase());
 
     if (error) {
       alert("저장 실패: " + error.message);
     } else {
-      router.push("/bot"); // ✅ 올바른 페이지로 이동
+      router.push("/bot");
     }
   };
 
   return (
-    <main className="min-h-screen bg-[#eef3f8] flex flex-col items-center px-4 py-8">
-      <div className="w-full max-w-md space-y-4">
-        <h2 className="text-lg font-semibold text-[#333]">📋 정보 입력하기</h2>
-        <p className="text-sm text-[#555]">서비스 이용을 위해 아래의 정보를 입력 후 제출해주세요.</p>
+    <main className="min-h-screen bg-[#eef3f8] flex justify-center items-start px-4 py-10">
+      <div className="w-full max-w-md space-y-6">
+        {/* 상단 제목 + 뒤로가기 */}
+        <div className="flex items-center gap-2 text-gray-700">
+          <button onClick={() => router.back()}>
+            <ChevronLeft size={20} />
+          </button>
+          <h2 className="text-base font-semibold">정보 입력하기</h2>
+        </div>
 
-        {/* 이름 입력 */}
+        <p className="text-sm text-[#555]">
+          서비스 이용을 위해 아래의 정보를 입력 후 제출해주세요.
+        </p>
+
+        {/* 이름 */}
         <input
-          className="w-full p-3 border border-gray-300 rounded-lg bg-white placeholder-gray-400"
+          type="text"
           placeholder="성함을 입력하세요."
           value={name}
           onChange={(e) => setName(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm placeholder-gray-400"
         />
 
-        {/* 이메일 입력 */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="이메일 ID를 입력하세요"
-            value={emailId}
-            onChange={(e) => setEmailId(e.target.value)}
-            className="w-full pr-28 p-3 border border-gray-300 rounded-lg bg-white placeholder-gray-400"
-          />
-          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-            @gmail.com
-          </span>
-        </div>
+        {/* 이메일 */}
+        <input
+          type="email"
+          placeholder="등록 이메일 주소를 입력하세요."
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm placeholder-gray-400"
+        />
 
-        {/* 전화번호 입력 */}
+        {/* 휴대폰 번호 (국제번호 +82 고정) */}
         <div className="flex items-center gap-2">
-          <span className="px-4 py-3 rounded-lg bg-gray-200 text-sm">010</span>
+          <span className="px-4 py-3 bg-gray-200 rounded-lg text-sm text-gray-600 select-none">
+            +82
+          </span>
           <input
-            type="text"
-            maxLength={8}
-            placeholder="휴대폰 뒤 8자리"
-            value={phoneSuffix}
+            type="tel"
+            placeholder="휴대폰 번호를 입력하세요."
+            value={phone}
             onChange={(e) => {
               const val = e.target.value.replace(/\D/g, "");
-              setPhoneSuffix(val.slice(0, 8));
+              setPhone(val);
             }}
-            className="flex-1 p-3 border border-gray-300 rounded-lg bg-white placeholder-gray-400"
+            className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm placeholder-gray-400"
           />
         </div>
 
+        {/* 저장 버튼 */}
         <button
           onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white font-medium py-3 rounded-lg mt-4 disabled:bg-gray-400"
-          disabled={!name || !emailId || phoneSuffix.length !== 8}
+          disabled={!name || !email || phone.length < 9}
+          className={`w-full py-3 rounded-lg text-sm font-semibold transition ${
+            !name || !email || phone.length < 9
+              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700"
+          }`}
         >
-          제출하기
+          저장하기
         </button>
       </div>
     </main>

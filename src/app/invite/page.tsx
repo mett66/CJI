@@ -7,6 +7,7 @@ import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import CoinWUidInput from "@/components/CoinWUidInput"; // ✅ 추가
 
 
 interface Invitee {
@@ -21,6 +22,7 @@ interface Invitee {
 
 export default function InvitePage() {
   const account = useActiveAccount();
+  const address = account?.address || ""; // ✅ 지갑 주소 추출
   const [refCode, setRefCode] = useState("");
   const [inviteLink, setInviteLink] = useState("");
   const [copied, setCopied] = useState(false);
@@ -136,30 +138,8 @@ export default function InvitePage() {
   </div>
 </section>
 
-{/* ✅ COINW 초대 코드 */}
-<section className="bg-white rounded-xl shadow overflow-hidden">
-  <div className="bg-blue-600 text-white px-3 py-1 font-semibold text-base">
-    COINW 초대 코드
-  </div>
-  <div className="px-3 py-4 space-y-1 text-xs text-black">
-    <div className="text-left">
-      <span className="font-semibold">초대UID :</span> 123456
-    </div>
-    {inviteLink && (
-      <>
-        <div className="text-left break-all mt-6">
-          <span className="font-semibold">COINW 초대링크 :</span> https://www.coinw.com/register?r=123456
-        </div>
-        <button
-          onClick={handleCopy}
-          className="w-full bg-blue-100 hover:bg-blue-200 text-blue-600 py-2 rounded-lg text-sm font-semibold mt-4"
-        >
-          {copied ? "✅ 복사됨" : "초대 링크 복사하기"}
-        </button>
-      </>
-    )}
-  </div>
-</section>
+          {/* ✅ COINW UID 입력 컴포넌트 추가 */}
+          <CoinWUidInput walletAddress={address} />
 
 
           {/* ✅ 나의 초대 코드 */}

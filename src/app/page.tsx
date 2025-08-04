@@ -80,12 +80,6 @@ useEffect(() => {
 
       <main className="min-h-screen flex flex-col justify-between bg-[#f8fafc] px-4 py-6 max-w-md mx-auto text-center">
         <div>
-          <section className="w-full mb-6">
-            <div className="p-4">
-              <p className="text-[16px] font-bold text-left text-[#4d4e4f]">눈덩이처럼 불어나는 나의 자산</p>
-              <h1 className="text-[16px] font-bold text-left text-[#4d4e4f]">프라클</h1>
-            </div>
-          </section>
 
           <div className="flex justify-center mt-20 mb-10">
             <div className="rounded-xl p-6">
