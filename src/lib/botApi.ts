@@ -22,7 +22,6 @@ export async function startBot(refCode: string) {
   }
 }
 
-
 export async function stopBot(walletAddress: string) {
   const res = await fetch("http://snowmart.co.kr:8000/stop-bot", {
     method: "POST",
