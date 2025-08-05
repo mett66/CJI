@@ -63,7 +63,7 @@ export default function HomePage() {
 
   return (
     <main className="w-full min-h-screen bg-[#f5f7fa] pt-0 pb-20">
-      <TopBar icon={<Home size={20} className="text-gray-700" />} title="홈" />
+      <TopBar  title="스토어" />
 
       <div className="px-3 pt-2">
         <img src="/ad1.png" alt="광고 배너" className="w-full rounded-xl shadow mb-2" />

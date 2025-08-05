@@ -75,15 +75,20 @@ useEffect(() => {
   return (
     <>
       <Head>
-        <title>SNOW BOT</title>
+        <title>프라클</title>
       </Head>
 
-      <main className="min-h-screen flex flex-col justify-between bg-[#f8fafc] px-4 py-6 max-w-md mx-auto text-center">
+      <main className="min-h-screen flex flex-col justify-between bg-[#d5e8f5] px-4 py-6 max-w-md mx-auto text-center">
         <div>
-
+          <section className="w-full mb-6">
+            <div className="p-4">
+              <p className="text-[16px] font-bold text-left text-[#4d4e4f]">누구나 들어오고 싶은 공간</p>
+              <h1 className="text-[16px] font-bold text-left text-[#4d4e4f]">FREE LIFE CLUB</h1>
+            </div>
+          </section>
           <div className="flex justify-center mt-20 mb-10">
             <div className="rounded-xl p-6">
-              <Image src="/logo.png" alt="Logo" width={150} height={150} priority />
+              <Image src="/logo.png" alt="Logo" width={180} height={180} priority />
             </div>
           </div>
 

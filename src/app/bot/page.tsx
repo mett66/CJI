@@ -173,7 +173,7 @@ const handleSavecoinwApi = async () => {
   return (
     <>
       <main className="min-h-screen bg-[#f5f7fa] pb-24">
-        <TopBar title="자동매매 봇 설정" />
+        <TopBar title="트레이딩봇" />
         <div className="px-4 pt-4 space-y-2">
           <img src="/ad1.png" alt="스노봇 배너" className="w-full rounded-xl object-cover h-[100px]" />
 
