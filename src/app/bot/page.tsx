@@ -8,6 +8,7 @@ import { useActiveAccount } from 'thirdweb/react';
 import { ChevronRight } from "lucide-react";
 import { startBot, stopBot } from '@/lib/botApi';
 import Link from "next/link";
+import PassCard from '@/components/PassCard';
 
 export default function BotPage() {
   const [showcoinwModal, setShowcoinwModal] = useState(false);
@@ -177,24 +178,9 @@ const handleSavecoinwApi = async () => {
         <div className="px-4 pt-4 space-y-2">
           <img src="/ad1.png" alt="스노봇 배너" className="w-full rounded-xl object-cover h-[100px]" />
 
-          {/* PASS 카드 */}
-          <div className="space-y-0">
-            <div className="bg-white border border-blue-200 rounded-t-xl px-4 py-3">
-              <h3 className="text-sm font-semibold text-gray-900">구독중인 PASS</h3>
-            </div>
-            <div className="bg-white border border-blue-200 border-t-0 rounded-b-xl px-4 py-4 text-center">
-              <p className="text-sm font-semibold text-gray-800 mb-2">구독중인 PASS가 없어요</p>
-              <p className="text-xs text-gray-600 leading-relaxed">
-                스토어에서 PASS를 구입한 후 API를 연동하면<br />
-                트레이딩봇을 이용할 수 있어요
-              </p>
-              <Link href="/store">
-                <p className="text-xs text-blue-600 mt-2 font-semibold cursor-pointer">
-                  스토어 바로가기 &gt;
-                </p>
-              </Link>
-            </div>
-          </div>
+{/* ✅ 구독 PASS 상태 표시 */}
+{refCode && <PassCard refCode={refCode} />}
+
 
           {/* API 연동 카드 */}
           <div

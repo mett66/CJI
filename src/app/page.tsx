@@ -78,7 +78,7 @@ useEffect(() => {
         <title>프라클</title>
       </Head>
 
-      <main className="min-h-screen flex flex-col justify-between bg-[#d5e8f5] px-4 py-6 max-w-md mx-auto text-center">
+      <main className="min-h-screen flex flex-col justify-between bg-[#E1F4F9] px-4 py-6 max-w-md mx-auto text-center">
         <div>
           <section className="w-full mb-6">
             <div className="p-4">
@@ -112,8 +112,8 @@ useEffect(() => {
                       color: "#4d4e4f",
                       padding: "14px 0",
                       borderRadius: "12px",
-                      fontSize: "15px",
-                      fontWeight: "500",
+                      fontSize: "16px",
+                      fontWeight: "800",
                       width: "100%",
                       border: "1px solid #ccc",
                       boxShadow: "none",
