@@ -2,14 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
-import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
+import {
+  getContract,
+  prepareContractCall,
+  sendTransaction,
+} from "thirdweb";
 import { polygon } from "thirdweb/chains";
 import { balanceOf } from "thirdweb/extensions/erc20";
 import { client } from "@/lib/client";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { getKSTDateString, getKSTISOString } from "@/lib/dateUtil"; // ✅ 추가
+import { getKSTDateString, getKSTISOString } from "@/lib/dateUtil";
 
 const USDT_ADDRESS = "0xc2132D05D31c914a87C6611C10748AEb04B58e8F";
 
@@ -22,6 +26,7 @@ export default function WithdrawPage() {
   const [amount, setAmount] = useState("1.0");
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showDepositInfo, setShowDepositInfo] = useState(false); // ✅ 입금 안내창 표시 여부
 
   const contract = useMemo(() => {
     return getContract({
@@ -89,7 +94,6 @@ export default function WithdrawPage() {
       const today = getKSTDateString();
       const now = getKSTISOString();
 
-      // ✅ Supabase 기록 (user 출금)
       let refCode = "unknown";
       try {
         const { data: user } = await supabase
@@ -113,8 +117,7 @@ export default function WithdrawPage() {
         amount: amountNumber,
         tx_hash: result.transactionHash + "-recv",
         status: "completed",
-        reward_date: today, // ✅ 한국 날짜 저장
-        // executed_at: now, // ⭕ 선택: 출금 시간 저장
+        reward_date: today,
       });
 
       if (insertResult.error) {
@@ -124,7 +127,6 @@ export default function WithdrawPage() {
         console.log("[✅ Supabase 기록 성공]");
       }
 
-      // ✅ Supabase 기록 (user 입금)
       try {
         const { data: existing } = await supabase
           .from("usdt_history")
@@ -151,8 +153,7 @@ export default function WithdrawPage() {
             amount: amountNumber,
             tx_hash: result.transactionHash,
             status: "completed",
-            reward_date: today, // ✅ 한국 날짜 저장
-            // executed_at: now, // ⭕ 선택: 입금 시간 저장
+            reward_date: today,
           });
 
           if (inResult.error) {
@@ -186,6 +187,7 @@ export default function WithdrawPage() {
       </div>
 
       <div className="max-w-md mx-auto px-4 pt-6 space-y-6">
+        {/* ✅ 나의 자산 */}
         <div className="space-y-1">
           <p className="text-sm font-bold text-gray-800">현재 잔액</p>
           <div className="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3">
@@ -197,6 +199,30 @@ export default function WithdrawPage() {
           </div>
         </div>
 
+        {/* ✅ 입금 안내 박스 */}
+        <div className="bg-white border border-blue-200 rounded-xl px-4 py-4 space-y-2">
+          <p className="text-sm font-bold text-gray-800">입금 안내</p>
+          <p className="text-sm text-gray-600">
+            현재 보유 자산: <span className="font-semibold">{balance} USDT</span>
+          </p>
+          <p className="text-xs text-gray-600">
+            해당 주소는 <strong>POLYGON</strong> 네트워크만 지원합니다. <br />
+            다른 네트워크로 입금 시 자산 복구가 <span className="text-red-500 font-semibold">불가능</span>합니다.
+          </p>
+          <button
+            onClick={() => {
+              if (account?.address) {
+                navigator.clipboard.writeText(account.address);
+                alert("주소가 복사되었습니다.");
+              }
+            }}
+            className="w-full py-2 mt-2 bg-blue-500 text-white rounded-lg text-sm font-semibold"
+          >
+            주소 복사하기
+          </button>
+        </div>
+
+        {/* ✅ 출금 입력 */}
         <div>
           <label className="block text-sm font-bold text-gray-800 mb-1">주소 입력</label>
           <input

@@ -164,18 +164,42 @@ export default function PassPurchaseModal({
         />
       )}
 
-      <div className="fixed inset-0 z-40 flex items-end justify-center bg-black bg-opacity-40 backdrop-blur-sm">
-        <div className="w-full max-w-[500px] bg-white rounded-t-3xl p-5">
-          <div className="text-center mb-2 text-lg font-bold">결제하기</div>
-          <div className="text-sm text-gray-600 mb-1">주문정보</div>
+<div className="fixed inset-0 z-40 flex items-end justify-center bg-black bg-opacity-40 backdrop-blur-sm">
+  {/* ✅ 여기 하나만 유지 */}
+  <div className="w-full max-w-[500px] bg-white rounded-t-3xl p-5 relative">
+    
+    {/* ✅ 우측 상단 닫기 버튼 */}
+    <button
+      onClick={onClose}
+      className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+      >
+        <path
+          fillRule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clipRule="evenodd"
+        />
+      </svg>
+    </button>
 
-          <div className="flex items-center space-x-3 p-3 border rounded-xl my-2">
-            <img src={selected.image} className="w-12 h-12 rounded-lg" alt={selected.name} />
-            <div>
-              <p className="font-semibold">{selected.name}</p>
-              <p className="text-xs text-gray-500">{selected.period}</p>
-            </div>
-          </div>
+    {/* ✅ 모달 내용 */}
+    <div className="text-center mb-2 text-lg font-bold">결제하기</div>
+    <div className="text-sm text-gray-600 mb-1">주문정보</div>
+
+    <div className="flex items-center space-x-3 p-3 border rounded-xl my-2">
+      <img src={selected.image} className="w-12 h-12 rounded-lg" alt={selected.name} />
+      <div>
+        <p className="font-semibold">{selected.name}</p>
+        <p className="text-xs text-gray-500">{selected.period}</p>
+      </div>
+    </div>
+
+
 
           <div className="flex justify-between text-sm mt-3">
             <span className="text-gray-700 font-medium">결제 금액</span>

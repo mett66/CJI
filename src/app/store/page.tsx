@@ -71,9 +71,9 @@ export default function HomePage() {
 
         {/* ✅ 안내 메시지 추가 */}
   <div className="px-4 mt-4">
-    <div className="bg-[#e9f1ff] border border-[#a3c7ff] text-sm text-gray-800 rounded-xl px-3 py-2 flex items-center gap-2">
+    <div className="bg-[#e9f1ff] border border-[#a3c7ff] text-sm text-gray-600 rounded-xl px-3 py-2 flex items-center gap-2">
       <img src="/deposit_tip.png" alt="입금 아이콘" className="w-10 h-10" />
-      <span>PASS권을 구매하기 전 하단의 나의 자산에서 <b>입금하기</b>를 클릭해 USDT를 충전해주세요</span>
+      <span>멤버십을 구독 하기 전 하단의 나의 자산에서 <b>입금하기</b>를 클릭해 USDT를 충전해주세요.충전후 구독신청이 가능합니다.</span>
     </div>
   </div>
 
@@ -91,13 +91,13 @@ export default function HomePage() {
             <div className="flex space-x-2">
               <button
                 onClick={() => router.push("/deposit")}
-                className="w-1/2 py-2 rounded bg-blue-100 text-blue-700 font-semibold"
+                className="w-1/2 py-2 rounded bg-blue-100 text-blue-600 font-semibold"
               >
                 입금하기
               </button>
               <button
                 onClick={() => router.push("/withdraw")}
-                className="w-1/2 py-2 rounded bg-blue-100 text-blue-700 font-semibold"
+                className="w-1/2 py-2 rounded bg-blue-100 text-blue-600 font-semibold"
               >
                 출금하기
               </button>
@@ -107,22 +107,22 @@ export default function HomePage() {
 
         {/* PASS 구입 섹션 */}
         <section className="bg-white rounded-xl shadow px-4 py-3">
-          <h3 className="text-sm font-bold text-blue-500 mb-2">패스권 구입하기</h3>
+          <h3 className="text-sm font-bold text-blue-500 mb-2">프라멤버십 구독하기</h3>
           {[{
             title: "100 프라",
-            price: "1 USDT / 1개월",
+            price: "100 USDT / 1개월",
             image: "/pass-300.png"
           }, {
             title: "300 프라",
-            price: "300 USDT / 3개월",
+            price: "300 USDT / 3개월 + 7일",
             image: "/pass-1800.png"
           }, {
             title: "600 프라",
-            price: "600 USDT / 6개월",
+            price: "600 USDT / 6개월 + 1개월",
             image: "/pass-3600.png"
           }, {
             title: "1200 프라",
-            price: "1200 USDT / 12개월",
+            price: "1200 USDT / 12개월 + 3개월",
             image: "/pass-vip.png"
           }].map((pass, idx) => (
             <div key={idx} className="flex items-center justify-between py-2">
