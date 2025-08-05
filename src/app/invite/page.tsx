@@ -97,49 +97,14 @@ export default function InvitePage() {
           {/* ✅ 오늘의 리워드 박스 */}
 <section className="bg-white rounded-xl shadow px-4 pt-3 pb-0">
   <div className="flex justify-between items-center">
-    <h3 className="text-base font-bold">오늘의 리워드</h3>
-    <p className="text-xl font-bold">30 USDT</p>
+    <h3 className="text-base font-bold">이번주의 리워드</h3>
+    <p className="text-xl font-bold">100 USDT</p>
   </div>
-  <div className="mt-2 mb-3 text-center bg-gray-200 rounded-full px-4 py-1 text-[13px] text-gray-700">
-    어제의 리워드가 매일 오후 3시 이전에 자동 입금돼요.
-  </div>
-</section>
-
-{/* ✅ 나의 자산 박스 (홈페이지 스타일 참고 적용) */}
-<section className="bg-white rounded-xl shadow overflow-hidden">
-  <div className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-2 font-bold text-base">
-    나의 자산
-  </div>
-  <div className="p-4 space-y-4">
-    {/* USDT 보유 */}
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <img src="/tether-icon.png" className="w-6 h-6" />
-        <span className="text-sm text-gray-700 font-medium">보유 USDT</span>
-      </div>
-      <span className="text-base font-bold text-gray-900">30 USDT</span>
-    </div>
-
-    {/* 버튼 그룹 */}
-    <div className="grid grid-cols-2 gap-2">
-      <button
-        onClick={() => router.push("/deposit")}
-        className="py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
-      >
-        입금하기
-      </button>
-      <button
-        onClick={() => router.push("/withdraw")}
-        className="py-2 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
-      >
-        출금하기
-      </button>
-    </div>
+  <div className="mt-2 mb-3 text-center bg-gray-200 rounded-full px-4 py-1 text-[10px] text-gray-700">
+    이번주의 리워드가 다음주 월요일 오후 3시 이전에 자동 입금돼요.
   </div>
 </section>
 
-          {/* ✅ COINW UID 입력 컴포넌트 추가 */}
-          <CoinWUidInput walletAddress={address} />
 
 
           {/* ✅ 나의 초대 코드 */}

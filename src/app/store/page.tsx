@@ -69,6 +69,14 @@ export default function HomePage() {
         <img src="/ad1.png" alt="광고 배너" className="w-full rounded-xl shadow mb-2" />
       </div>
 
+        {/* ✅ 안내 메시지 추가 */}
+  <div className="px-4 mt-4">
+    <div className="bg-[#e9f1ff] border border-[#a3c7ff] text-sm text-gray-800 rounded-xl px-3 py-2 flex items-center gap-2">
+      <img src="/deposit_tip.png" alt="입금 아이콘" className="w-10 h-10" />
+      <span>PASS권을 구매하기 전 하단의 나의 자산에서 <b>입금하기</b>를 클릭해 USDT를 충전해주세요</span>
+    </div>
+  </div>
+
       <div className="max-w-[500px] mx-auto px-3 pt-2 space-y-2">
         <section className="bg-white rounded-xl shadow overflow-hidden">
           <div className="bg-blue-600 text-white text-md font-semibold px-4 py-1">나의 자산</div>
@@ -101,20 +109,20 @@ export default function HomePage() {
         <section className="bg-white rounded-xl shadow px-4 py-3">
           <h3 className="text-sm font-bold text-blue-500 mb-2">패스권 구입하기</h3>
           {[{
-            title: "300 PASS",
+            title: "100 프라",
             price: "1 USDT / 1개월",
             image: "/pass-300.png"
           }, {
-            title: "1800 PASS",
-            price: "1800 USDT / 6개월",
+            title: "300 프라",
+            price: "300 USDT / 3개월",
             image: "/pass-1800.png"
           }, {
-            title: "3600 PASS",
-            price: "3600 USDT / 12개월",
+            title: "600 프라",
+            price: "600 USDT / 6개월",
             image: "/pass-3600.png"
           }, {
-            title: "VIP PASS",
-            price: "10000 USDT / 무제한",
+            title: "1200 프라",
+            price: "1200 USDT / 12개월",
             image: "/pass-vip.png"
           }].map((pass, idx) => (
             <div key={idx} className="flex items-center justify-between py-2">

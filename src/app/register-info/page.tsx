@@ -4,15 +4,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useActiveAccount } from "thirdweb/react";
 import { supabase } from "@/lib/supabaseClient";
-import { ChevronLeft } from "lucide-react"; // ← 아이콘용
+import { ChevronLeft } from "lucide-react";
 
 export default function RegisterInfoPage() {
   const account = useActiveAccount();
   const router = useRouter();
 
   const [name, setName] = useState("");
-  const [email, setEmail] = useState(""); // 전체 이메일 입력
-  const [phone, setPhone] = useState(""); // +82 제외한 나머지 번호만 입력
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [coinwUid, setCoinwUid] = useState("");
 
   const handleSubmit = async () => {
     if (!account?.address) {
@@ -43,6 +44,7 @@ export default function RegisterInfoPage() {
         name: name.trim(),
         email: email.trim(),
         phone: fullPhone,
+        coinw_uid: coinwUid.trim(), // ✅ 추가 저장
       })
       .eq("wallet_address", account.address.toLowerCase());
 
@@ -86,7 +88,7 @@ export default function RegisterInfoPage() {
           className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm placeholder-gray-400"
         />
 
-        {/* 휴대폰 번호 (국제번호 +82 고정) */}
+        {/* 휴대폰 번호 */}
         <div className="flex items-center gap-2">
           <span className="px-4 py-3 bg-gray-200 rounded-lg text-sm text-gray-600 select-none">
             +82
@@ -102,6 +104,15 @@ export default function RegisterInfoPage() {
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm placeholder-gray-400"
           />
         </div>
+
+        {/* ✅ COINW UID 입력 */}
+        <input
+          type="text"
+          placeholder="COINW UID를 입력하세요."
+          value={coinwUid}
+          onChange={(e) => setCoinwUid(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white text-sm placeholder-gray-400"
+        />
 
         {/* 저장 버튼 */}
         <button

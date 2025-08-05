@@ -121,13 +121,13 @@ export default function PassPurchaseModal({
       // ✅ 수강 내역 저장
       const { error: insertError } = await supabase.from("enrollments").insert({
         ref_code: user.ref_code,
-        invited_by_code: user.ref_by,
-        center_code: user.center_id,
-        student_name: user.name,
-        tv_account_id: user.tv_id,
+        ref_by: user.ref_by,
+        center_id: user.center_id,
+        name: user.name,
         pass_type: selected.name,
         pass_expired_at: expired.toISOString().split("T")[0],
         memo: "결제 완료",
+        tuition_fee: selected.price, // ✅ 실제 결제된 금액 저장
         created_at: getKSTISOString(),
       });
 

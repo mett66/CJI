@@ -3,9 +3,31 @@
 "use client";
 
 import AdminAuth from "@/components/AdminAuth";
-import ManualRewardPanel from "@/components/admin/ManualRewardPanel"; // ✅ 신규 컴포넌트
+import ManualRewardPanel from "@/components/admin/ManualRewardPanel";
+import { useState } from "react";
 
 export default function AdminDashboard() {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleCalculateRewards = async () => {
+    setLoading(true);
+    setMessage("리워드 계산 중...");
+    const res = await fetch("/api/admin/calculate-rewards", { method: "POST" });
+    const data = await res.json();
+    setMessage(data.message || "리워드 계산 완료");
+    setLoading(false);
+  };
+
+  const handleSendRewards = async () => {
+    setLoading(true);
+    setMessage("리워드 송금 중...");
+    const res = await fetch("/api/admin/send-rewards", { method: "POST" });
+    const data = await res.json();
+    setMessage(data.message || "리워드 송금 완료");
+    setLoading(false);
+  };
+
   return (
     <AdminAuth>
       <div className="space-y-8">
@@ -22,8 +44,32 @@ export default function AdminDashboard() {
 
         {/* ✅ 수동 송금 패널 */}
         <ManualRewardPanel />
+
+        {/* ✅ 리워드 계산 / 송금 버튼 */}
+        <div className="space-y-2">
+          <h3 className="text-lg font-bold">🛠 리워드 자동 처리</h3>
+
+          <button
+            onClick={handleCalculateRewards}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded w-full"
+          >
+            📊 리워드 계산
+          </button>
+
+          <button
+            onClick={handleSendRewards}
+            disabled={loading}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full"
+          >
+            💸 리워드 송금
+          </button>
+
+          {message && (
+            <p className="text-sm text-gray-500 mt-2 text-center">{message}</p>
+          )}
+        </div>
       </div>
     </AdminAuth>
   );
 }
-
