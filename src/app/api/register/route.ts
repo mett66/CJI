@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
   }
 
   // 🧠 추천인 정보 확인 → 센터 ID 계산
-  let center_id = "SW10100"; // 기본 센터
+  let center_id = "SW10101"; // 기본 센터
   const { data: referrer, error: referrerError } = await supabase
     .from("users")
     .select("role, center_id, ref_code")
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (referrer.role === "center") {
       center_id = referrer.ref_code;
     } else {
-      center_id = referrer.center_id || "SW10100";
+      center_id = referrer.center_id || "SW10101";
     }
   }
 
