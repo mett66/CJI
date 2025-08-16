@@ -13,9 +13,10 @@ export default function MyPage() {
   const router = useRouter();
 
   const [userData, setUserData] = useState<any>(null);
-  const [editingField, setEditingField] = useState<"name" | "phone" | null>(null);
+  const [editingField, setEditingField] = useState<"name" | "phone" | "coinw_uid" | null>(null);
   const [nameInput, setNameInput] = useState("");
   const [phoneInput, setPhoneInput] = useState("");
+  const [uidInput, setUidInput] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -23,7 +24,7 @@ export default function MyPage() {
 
       const { data: user } = await supabase
         .from("users")
-        .select("name, phone, email, created_at, ref_by, joined_at")
+        .select("name, phone, email, created_at, ref_by, joined_at, coinw_uid")
         .eq("wallet_address", account.address.toLowerCase())
         .maybeSingle();
 
@@ -43,6 +44,8 @@ export default function MyPage() {
         ...user,
         ref_by_name: refName,
       });
+
+      setUidInput(user?.coinw_uid || "");
     };
 
     fetchUserData();
@@ -78,92 +81,52 @@ export default function MyPage() {
             <h2 className="text-md font-semibold text-gray-700 mb-1 pl-2">계정관리</h2>
             <div className="bg-white rounded-xl shadow border text-sm divide-y divide-gray-200">
               {/* 이름 */}
-              <div className="flex justify-between px-4 py-3 items-center">
-                <span>내 이름</span>
-                {editingField === "name" ? (
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="text"
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      className="text-sm border rounded px-2 py-1 w-28"
-                    />
-                    <button
-                      onClick={async () => {
-                        const { error } = await supabase
-                          .from("users")
-                          .update({ name: nameInput })
-                          .eq("wallet_address", account.address.toLowerCase());
+              <InfoItem
+                label="내 이름"
+                value={userData?.name}
+                isEditing={editingField === "name"}
+                onEdit={() => {
+                  setEditingField("name");
+                  setNameInput(userData?.name || "");
+                }}
+                onSave={async () => {
+                  const { error } = await supabase
+                    .from("users")
+                    .update({ name: nameInput })
+                    .eq("wallet_address", account.address.toLowerCase());
 
-                        if (!error) {
-                          setEditingField(null);
-                          setUserData({ ...userData, name: nameInput });
-                        }
-                      }}
-                      className="text-blue-500 text-sm"
-                    >
-                      저장
-                    </button>
-                  </div>
-                ) : (
-                  <span className="text-gray-800">
-                    {userData?.name || "-"}{" "}
-                    <span
-                      className="text-blue-500 cursor-pointer text-sm"
-                      onClick={() => {
-                        setEditingField("name");
-                        setNameInput(userData?.name || "");
-                      }}
-                    >
-                      수정
-                    </span>
-                  </span>
-                )}
-              </div>
+                  if (!error) {
+                    setEditingField(null);
+                    setUserData({ ...userData, name: nameInput });
+                  }
+                }}
+                inputValue={nameInput}
+                onInputChange={setNameInput}
+              />
 
               {/* 휴대폰 번호 */}
-              <div className="flex justify-between px-4 py-3 items-center">
-                <span>휴대폰 번호</span>
-                {editingField === "phone" ? (
-                  <div className="flex gap-2 items-center">
-                    <input
-                      type="text"
-                      value={phoneInput}
-                      onChange={(e) => setPhoneInput(e.target.value)}
-                      className="text-sm border rounded px-2 py-1 w-28"
-                    />
-                    <button
-                      onClick={async () => {
-                        const { error } = await supabase
-                          .from("users")
-                          .update({ phone: phoneInput })
-                          .eq("wallet_address", account.address.toLowerCase());
+              <InfoItem
+                label="휴대폰 번호"
+                value={userData?.phone}
+                isEditing={editingField === "phone"}
+                onEdit={() => {
+                  setEditingField("phone");
+                  setPhoneInput(userData?.phone || "");
+                }}
+                onSave={async () => {
+                  const { error } = await supabase
+                    .from("users")
+                    .update({ phone: phoneInput })
+                    .eq("wallet_address", account.address.toLowerCase());
 
-                        if (!error) {
-                          setEditingField(null);
-                          setUserData({ ...userData, phone: phoneInput });
-                        }
-                      }}
-                      className="text-blue-500 text-sm"
-                    >
-                      저장
-                    </button>
-                  </div>
-                ) : (
-                  <span className="text-gray-800">
-                    {userData?.phone || "-"}{" "}
-                    <span
-                      className="text-blue-500 cursor-pointer text-sm"
-                      onClick={() => {
-                        setEditingField("phone");
-                        setPhoneInput(userData?.phone || "");
-                      }}
-                    >
-                      수정
-                    </span>
-                  </span>
-                )}
-              </div>
+                  if (!error) {
+                    setEditingField(null);
+                    setUserData({ ...userData, phone: phoneInput });
+                  }
+                }}
+                inputValue={phoneInput}
+                onInputChange={setPhoneInput}
+              />
 
               {/* 이메일 */}
               <div className="flex justify-between px-4 py-3">
@@ -186,6 +149,30 @@ export default function MyPage() {
                 <span>추천인</span>
                 <span className="text-gray-800">{userData?.ref_by_name || "-"}</span>
               </div>
+
+              {/* ✅ CoinW UID 추가 */}
+              <InfoItem
+                label="CoinW UID"
+                value={userData?.coinw_uid}
+                isEditing={editingField === "coinw_uid"}
+                onEdit={() => {
+                  setEditingField("coinw_uid");
+                  setUidInput(userData?.coinw_uid || "");
+                }}
+                onSave={async () => {
+                  const { error } = await supabase
+                    .from("users")
+                    .update({ coinw_uid: uidInput })
+                    .eq("wallet_address", account.address.toLowerCase());
+
+                  if (!error) {
+                    setEditingField(null);
+                    setUserData({ ...userData, coinw_uid: uidInput });
+                  }
+                }}
+                inputValue={uidInput}
+                onInputChange={setUidInput}
+              />
             </div>
           </section>
 
@@ -230,5 +217,56 @@ export default function MyPage() {
         <BottomNav />
       </main>
     </>
+  );
+}
+
+// ✅ 재사용 가능한 인라인 수정 컴포넌트
+function InfoItem({
+  label,
+  value,
+  isEditing,
+  onEdit,
+  onSave,
+  inputValue,
+  onInputChange,
+}: {
+  label: string;
+  value: string;
+  isEditing: boolean;
+  onEdit: () => void;
+  onSave: () => void;
+  inputValue: string;
+  onInputChange: (val: string) => void;
+}) {
+  return (
+    <div className="flex justify-between px-4 py-3 items-center">
+      <span>{label}</span>
+      {isEditing ? (
+        <div className="flex gap-2 items-center">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => onInputChange(e.target.value)}
+            className="text-sm border rounded px-2 py-1 w-28"
+          />
+          <button onClick={onSave} className="text-blue-500 text-sm">
+            저장
+          </button>
+          <button
+            onClick={() => onInputChange(value || "")}
+            className="text-gray-400 text-xs"
+          >
+            취소
+          </button>
+        </div>
+      ) : (
+        <span className="text-gray-800">
+          {value || "-"}{" "}
+          <span onClick={onEdit} className="text-blue-500 cursor-pointer text-sm">
+            수정
+          </span>
+        </span>
+      )}
+    </div>
   );
 }

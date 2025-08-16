@@ -78,11 +78,11 @@ useEffect(() => {
         <title>프라클</title>
       </Head>
 
-      <main className="min-h-screen flex flex-col justify-between bg-[#E1F4F9] px-4 py-6 max-w-md mx-auto text-center">
+      <main className="min-h-screen flex flex-col justify-between bg-[#f5f7fa] px-4 py-6 max-w-md mx-auto text-center">
         <div>
           <section className="w-full mb-6">
             <div className="p-4">
-              <p className="text-[16px] font-bold text-left text-[#4d4e4f]">누구나 들어오고 싶은 공간</p>
+              <p className="text-[16px] font-bold text-left text-[#4d4e4f]">누구나 참여하고 싶은 공간</p>
               <h1 className="text-[16px] font-bold text-left text-[#4d4e4f]">FREE LIFE CLUB</h1>
             </div>
           </section>
