@@ -5,14 +5,16 @@ import TopBar from '@/components/TopBar';
 import BottomNav from '@/components/BottomNav';
 import { supabase } from '@/lib/supabaseClient';
 import { useActiveAccount } from 'thirdweb/react';
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, PauseCircle, PlayCircle } from 'lucide-react';
 import { startBot, stopBot } from '@/lib/botApi';
-import Link from "next/link";
+import Link from 'next/link';
 import PassCard from '@/components/PassCard';
 
 export default function BotPage() {
   const [showcoinwModal, setShowcoinwModal] = useState(false);
   const [showStartModal, setShowStartModal] = useState(false);
+  const [showStopModal, setShowStopModal] = useState(false);
+
   const [coinwApiKey, setcoinwApiKey] = useState('');
   const [coinwApiSecret, setcoinwApiSecret] = useState('');
 
@@ -23,8 +25,9 @@ export default function BotPage() {
   const [name, setName] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [apiSecret, setApiSecret] = useState('');
+
   const account = useActiveAccount();
-  const [showStopModal, setShowStopModal] = useState(false);
+
   const [stopOption, setStopOption] = useState<'close-all' | 'keep-position'>('close-all');
 
   const [botStatus, setBotStatus] = useState<'running' | 'stopped' | 'unknown'>('unknown');
@@ -32,14 +35,11 @@ export default function BotPage() {
 
   const [hasMembership, setHasMembership] = useState(false);
 
-  // 실행 상태 파생값
+  // 파생값
   const isBotRunning = botStatus === 'running';
 
   /**
-   * ✅ 멤버십 체크: public.enrollments 기준
-   *  - ref_code == 내 refCode
-   *  - pass_expired_at >= 오늘(YYYY-MM-DD)
-   *  실패 시에만 과거 fallback(user_passes / passes / users)로 보강
+   * ✅ 멤버십 체크: enrollments → (fallback) user_passes → passes → users
    */
   const checkMembership = async (wallet?: string, ref?: string) => {
     const w = (wallet || account?.address || '').toLowerCase();
@@ -49,7 +49,6 @@ export default function BotPage() {
       return;
     }
 
-    // enrollments는 날짜 컬럼이 date 타입이므로 날짜 문자열로 비교
     const today = new Date().toISOString().slice(0, 10);
 
     // 0) enrollments (정식)
@@ -67,7 +66,7 @@ export default function BotPage() {
       }
     } catch (_) {}
 
-    // ---- 이하: 과거 호환용 fallback (있던 로직 유지) ----
+    // ---- 이하: 과거 호환용 fallback ----
     const nowIso = new Date().toISOString();
 
     // 1) user_passes
@@ -122,30 +121,18 @@ export default function BotPage() {
     setHasMembership(false);
   };
 
-  // 상태 조회
-  const fetchStatus = async () => {
-    if (!refCode) return;
-    try {
-      setChecking(true);
-      const res = await fetch(`http://snowmart.co.kr:8000/bot-status?ref_code=${encodeURIComponent(refCode)}`);
-      const data = await res.json();
-      setBotStatus(data?.running ? 'running' : 'stopped');
-    } catch (e) {
-      console.error('status check error:', e);
-      setBotStatus('unknown');
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  // 사용자/설정/구독 로드
+  /**
+   * ✅ 초기 로드: 사용자/설정/구독/상태
+   *  - 중첩 useEffect 제거
+   *  - 중복 setRefCode/setName 제거
+   */
   useEffect(() => {
     if (!account?.address) return;
 
-    const fetch = async () => {
+    (async () => {
       const { data: userData } = await supabase
         .from('users')
-        .select('ref_code, name')
+        .select('ref_code, name, is_running, symbol, entry_amount, api_key, secret_key')
         .eq('wallet_address', account.address.toLowerCase())
         .single();
 
@@ -153,30 +140,48 @@ export default function BotPage() {
 
       setRefCode(userData.ref_code);
       setName(userData.name);
+      setBotStatus(userData.is_running ? 'running' : 'stopped');
 
-      // 멤버십 확인 (enrollments 기준)
+      // 멤버십 확인
       await checkMembership(account.address, userData.ref_code);
 
-      const { data: setting } = await supabase
-        .from('users')
-        .select('symbol, entry_amount, api_key, secret_key')
-        .eq('wallet_address', account.address.toLowerCase())
-        .single();
+      // 사용자 설정 반영
+      setSymbol(userData.symbol || 'XRPUSDT');
+      setEntryAmount(userData.entry_amount?.toString() || '5');
+      setApiKey(userData.api_key || '');
+      setApiSecret(userData.secret_key || '');
+      setcoinwApiKey(userData.api_key || '');
+      setcoinwApiSecret(userData.secret_key || '');
+    })();
+  }, [account?.address]);
 
-      if (setting) {
-        setSymbol(setting.symbol || 'XRPUSDT');
-        setEntryAmount(setting.entry_amount?.toString() || '50');
-        setApiKey(setting.api_key || '');
-        setApiSecret(setting.secret_key || '');
-        setcoinwApiKey(setting.api_key || '');
-        setcoinwApiSecret(setting.secret_key || '');
-      }
+  /**
+   * ✅ users.is_running 실시간 반영 (내 지갑만)
+   */
+  useEffect(() => {
+    if (!account?.address) return;
+    const w = account.address.toLowerCase();
+
+    const ch = supabase
+      .channel('users_running_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'users', filter: `wallet_address=eq.${w}` },
+        (payload) => {
+          const next = (payload.new as any)?.is_running;
+          if (typeof next === 'boolean') setBotStatus(next ? 'running' : 'stopped');
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(ch);
     };
+  }, [account?.address]);
 
-    fetch();
-  }, [account]);
-
-  // ✅ enrollments Realtime 반영 (refCode 기준)
+  /**
+   * ✅ enrollments / user_passes 실시간 반영
+   */
   useEffect(() => {
     if (!refCode) return;
 
@@ -185,20 +190,24 @@ export default function BotPage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'enrollments', filter: `ref_code=eq.${refCode}` },
-        () => { checkMembership(account?.address, refCode); }
+        () => {
+          checkMembership(account?.address, refCode);
+        }
       )
       .subscribe();
 
-    // 기존 user_passes 리스너(있던 로직 유지)
     const w = account?.address?.toLowerCase();
     let chUserPasses: ReturnType<typeof supabase.channel> | undefined;
+
     if (w) {
       chUserPasses = supabase
         .channel('user_passes_realtime')
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'user_passes', filter: `wallet_address=eq.${w}` },
-          () => { checkMembership(w, refCode); }
+          () => {
+            checkMembership(w, refCode);
+          }
         )
         .subscribe();
     }
@@ -209,7 +218,9 @@ export default function BotPage() {
     };
   }, [refCode, account?.address]);
 
-  // 탭 복귀 시 재확인
+  /**
+   * ✅ 탭 복귀 시 멤버십 재확인
+   */
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === 'visible' && account?.address) {
@@ -219,20 +230,6 @@ export default function BotPage() {
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
   }, [account?.address, refCode]);
-
-  // 상태 폴링
-  useEffect(() => {
-    if (!refCode) return;
-    fetchStatus();
-    const t = setInterval(fetchStatus, 15000);
-    return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refCode]);
-
-  useEffect(() => {
-    if (symbol === 'BTCUSDT') setEntryAmount('0.005');
-    if (symbol === 'XRPUSDT') setEntryAmount('50');
-  }, [symbol]);
 
   const handleSaveSettings = async () => {
     if (!account?.address || !symbol || entryAmount === '') {
@@ -267,7 +264,7 @@ export default function BotPage() {
   };
 
   const handleStartBot = async () => {
-    if (!refCode) return;
+    if (!refCode || !account?.address) return;
 
     await supabase
       .from('users')
@@ -277,32 +274,28 @@ export default function BotPage() {
     try {
       const result = await startBot(refCode);
       alert(`🚀 봇 시작: ${result.message || result.ref_code}`);
-      setBotStatus('running');     // 즉시 반영
-      await fetchStatus();         // 서버와 동기화
+      setBotStatus('running'); // 즉시 반영
     } catch (e) {
       console.error(e);
       alert('❌ 백엔드 실행 요청 실패');
-      await fetchStatus();
     }
   };
 
   const handleStopBot = async () => {
-    if (!refCode) return;
+    if (!refCode || !account?.address) return;
 
     await supabase
       .from('users')
       .update({ is_running: false, updated_at: new Date().toISOString() })
-      .eq('wallet_address', account.address?.toLowerCase());
+      .eq('wallet_address', account.address.toLowerCase());
 
     try {
       const result = await stopBot(refCode);
       alert(`🛑 봇 중지: ${result.message || result.ref_code}`);
-      setBotStatus('stopped');     // 즉시 반영
-      await fetchStatus();         // 서버와 동기화
+      setBotStatus('stopped'); // 즉시 반영
     } catch (e) {
       console.error(e);
       alert('❌ 백엔드 중지 요청 실패');
-      await fetchStatus();
     }
   };
 
@@ -372,7 +365,6 @@ export default function BotPage() {
                 disabled={isBotRunning}
                 className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="BTCUSDT">BTC/USDT</option>
                 <option value="XRPUSDT">XRP/USDT</option>
               </select>
             </div>
@@ -417,6 +409,43 @@ export default function BotPage() {
               시작하기
             </button>
 
+            {/* 상태 박스 */}
+            <div
+              className={`w-full rounded-xl border shadow-sm transition-colors duration-200
+                ${isBotRunning ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}
+              aria-live="polite"
+            >
+              <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`inline-flex items-center justify-center rounded-full p-1.5
+                      ${isBotRunning ? 'bg-emerald-100' : 'bg-rose-100'}`}
+                  >
+                    {isBotRunning ? (
+                      <PlayCircle className="w-5 h-5 text-emerald-600" />
+                    ) : (
+                      <PauseCircle className="w-5 h-5 text-rose-600" />
+                    )}
+                  </span>
+                  <div>
+                    <div className={`text-sm font-semibold ${isBotRunning ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      봇 상태: {isBotRunning ? '실행 중' : '중지됨'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {isBotRunning ? '자동 주문이 실행되고 있어요.' : '봇이 멈춰있습니다. 시작하기를 눌러 실행하세요.'}
+                    </div>
+                  </div>
+                </div>
+
+                <span
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium
+                    ${isBotRunning ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200'}`}
+                >
+                  {isBotRunning ? 'RUNNING' : 'STOPPED'}
+                </span>
+              </div>
+            </div>
+
             <button
               onClick={() => setShowStopModal(true)}
               className="w-full py-3 rounded-full border border-[#377DFF] text-[#377DFF] text-sm font-semibold hover:bg-blue-50 transition"
@@ -428,22 +457,22 @@ export default function BotPage() {
         </div>
       </main>
 
+      {/* 시작 모달 */}
       {showStartModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl w-[90%] max-w-md p-6 space-y-6 shadow-lg">
             <h2 className="text-lg font-bold text-center">프라봇을 시작합니다</h2>
             <div className="text-sm text-gray-800 space-y-2">
-              <p><span className="font-medium">거래심볼:</span> {symbol}</p>
-              <p><span className="font-medium">진입금액:</span> {entryAmount}</p>
-              <p className="text-xs text-gray-500">
-                나의 자산규모에 맞는 진입금액으로 설정되었는지 확인해주세요
+              <p>
+                <span className="font-medium">거래심볼:</span> {symbol}
               </p>
+              <p>
+                <span className="font-medium">진입금액:</span> {entryAmount}
+              </p>
+              <p className="text-xs text-gray-500">나의 자산규모에 맞는 진입금액으로 설정되었는지 확인해주세요</p>
             </div>
             <div className="flex justify-between gap-4 pt-2">
-              <button
-                onClick={() => setShowStartModal(false)}
-                className="w-full py-2 rounded-md bg-gray-200 text-sm font-medium hover:bg-gray-300"
-              >
+              <button onClick={() => setShowStartModal(false)} className="w-full py-2 rounded-md bg-gray-200 text-sm font-medium hover:bg-gray-300">
                 취소
               </button>
               <button
@@ -460,6 +489,7 @@ export default function BotPage() {
         </div>
       )}
 
+      {/* 중지 모달 */}
       {showStopModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl w-[90%] max-w-md p-6 space-y-6 shadow-lg">
@@ -467,16 +497,11 @@ export default function BotPage() {
 
             <div className="p-4 rounded-lg border border-gray-300 bg-gray-50">
               <p className="text-sm font-semibold mb-1">현재 포지션은 유지할게요</p>
-              <p className="text-xs text-gray-500">
-                봇은 중지되지만 현재 모든 포지션은 유지됩니다
-              </p>
+              <p className="text-xs text-gray-500">봇은 중지되지만 현재 모든 포지션은 유지됩니다</p>
             </div>
 
             <div className="flex justify-between gap-4 pt-2">
-              <button
-                onClick={() => setShowStopModal(false)}
-                className="w-full py-2 rounded-md bg-gray-200 text-sm font-medium hover:bg-gray-300"
-              >
+              <button onClick={() => setShowStopModal(false)} className="w-full py-2 rounded-md bg-gray-200 text-sm font-medium hover:bg-gray-300">
                 취소
               </button>
               <button
@@ -493,6 +518,7 @@ export default function BotPage() {
         </div>
       )}
 
+      {/* API 연동 모달 */}
       {showcoinwModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-white rounded-xl shadow-md w-[90%] max-w-md p-6">
@@ -512,16 +538,10 @@ export default function BotPage() {
               onChange={(e) => setcoinwApiSecret(e.target.value)}
             />
             <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowcoinwModal(false)}
-                className="px-4 py-2 bg-gray-200 rounded"
-              >
+              <button onClick={() => setShowcoinwModal(false)} className="px-4 py-2 bg-gray-200 rounded">
                 취소
               </button>
-              <button
-                onClick={handleSavecoinwApi}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-              >
+              <button onClick={handleSavecoinwApi} className="px-4 py-2 bg-blue-600 text-white rounded">
                 연결
               </button>
             </div>
