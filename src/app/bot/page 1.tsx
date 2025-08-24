@@ -38,11 +38,6 @@ export default function BotPage() {
   // 파생값
   const isBotRunning = botStatus === 'running';
 
-  // ✅ 백그라운드 호출 헬퍼(실패해도 UI는 유지 – 임시용)
-  const fireAndForget = (fn: () => Promise<any>) => {
-    fn().catch((e) => console.warn('[fireAndForget]', e));
-  };
-
   /**
    * ✅ 멤버십 체크: enrollments → (fallback) user_passes → passes → users
    */
@@ -128,6 +123,8 @@ export default function BotPage() {
 
   /**
    * ✅ 초기 로드: 사용자/설정/구독/상태
+   *  - 중첩 useEffect 제거
+   *  - 중복 setRefCode/setName 제거
    */
   useEffect(() => {
     if (!account?.address) return;
@@ -266,45 +263,41 @@ export default function BotPage() {
     }
   };
 
-  // =========================
-  // ✅ 임시 모드: 즉시 성공 표시 + DB 반영, 백엔드 호출은 백그라운드 시도
-  // =========================
   const handleStartBot = async () => {
     if (!refCode || !account?.address) return;
 
-    // 1) 즉시 UI 반영 + DB 업데이트
-    alert('🚀 봇 실행 시작됨');
-    setBotStatus('running');
     await supabase
       .from('users')
       .update({ is_running: true, updated_at: new Date().toISOString() })
       .eq('wallet_address', account.address.toLowerCase());
 
-    // 2) 백엔드 호출은 백그라운드로 시도 (실패해도 UI 유지)
-    fireAndForget(async () => {
+    try {
       const result = await startBot(refCode);
-      console.log('startBot result:', result);
-    });
+      alert(`🚀 봇 시작: ${result.message || result.ref_code}`);
+      setBotStatus('running'); // 즉시 반영
+    } catch (e) {
+      console.error(e);
+      alert('❌ 백엔드 실행 요청 실패');
+    }
   };
 
   const handleStopBot = async () => {
     if (!refCode || !account?.address) return;
 
-    // 1) 즉시 UI 반영 + DB 업데이트
-    alert('🛑 봇 중지 완료');
-    setBotStatus('stopped');
     await supabase
       .from('users')
       .update({ is_running: false, updated_at: new Date().toISOString() })
       .eq('wallet_address', account.address.toLowerCase());
 
-    // 2) 백엔드 호출은 백그라운드로 시도 (실패해도 UI 유지)
-    fireAndForget(async () => {
+    try {
       const result = await stopBot(refCode);
-      console.log('stopBot result:', result);
-    });
+      alert(`🛑 봇 중지: ${result.message || result.ref_code}`);
+      setBotStatus('stopped'); // 즉시 반영
+    } catch (e) {
+      console.error(e);
+      alert('❌ 백엔드 중지 요청 실패');
+    }
   };
-  // =========================
 
   const handleSavecoinwApi = async () => {
     if (!account?.address || !coinwApiKey || !coinwApiSecret) {
