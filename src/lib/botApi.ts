@@ -1,8 +1,9 @@
-// ✅ API 베이스: 환경변수 우선, 없으면 기존 도메인 사용
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_BASE ?? "https://snowmart.co.kr";
+// lib/botApi.ts
 
-// ✅ 공통: 타임아웃 유틸
+// ✅ 프록시 사용: 클라에서는 동일 오리진만 호출
+//    필요시 앞에 붙여쓸 베이스 경로(현재는 빈 문자열)
+const API_BASE = ""; // e.g. "", 혹은 "/"
+
 function withTimeout(ms: number) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), ms);
@@ -13,7 +14,7 @@ function withTimeout(ms: number) {
 export async function startBot(refCode: string) {
   const { controller, clear } = withTimeout(15000); // 15초 타임아웃
   try {
-    const res = await fetch(`${API_BASE}/start-bot`, {
+    const res = await fetch(`${API_BASE}/api/start-bot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ref_code: refCode }),
@@ -22,7 +23,6 @@ export async function startBot(refCode: string) {
     });
 
     if (!res.ok) {
-      // JSON/텍스트 에러 모두 안전 처리
       let detail = "봇 시작 오류";
       try {
         const err = await res.json();
@@ -36,7 +36,11 @@ export async function startBot(refCode: string) {
       throw new Error(`❌ Start Bot Error: ${res.status} - ${detail}`);
     }
 
-    return await res.json();
+    try {
+      return await res.json();
+    } catch {
+      return {};
+    }
   } finally {
     clear();
   }
@@ -46,7 +50,7 @@ export async function startBot(refCode: string) {
 export async function stopBot(refCode: string) {
   const { controller, clear } = withTimeout(15000); // 15초 타임아웃
   try {
-    const res = await fetch(`${API_BASE}/stop-bot`, {
+    const res = await fetch(`${API_BASE}/api/stop-bot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ref_code: refCode }),
@@ -68,7 +72,11 @@ export async function stopBot(refCode: string) {
       throw new Error(`❌ Stop Bot Error: ${res.status} - ${detail}`);
     }
 
-    return await res.json();
+    try {
+      return await res.json();
+    } catch {
+      return {};
+    }
   } finally {
     clear();
   }

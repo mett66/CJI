@@ -8,8 +8,8 @@ const tabs = [
   { href: "/admin/subscriptions", label: "구독현황" },
   { href: "/admin/rewards", label: "리워드송금" },
   { href: "/admin/bots", label: "봇운영현황" },
+  { href: "/admin/account", label: "거래소세팅" },
   { href: "/admin/referrals", label: "추천구조" },
-  { href: "/admin/polygon", label: "폴리곤잔액" },
 ];
 
 export default function AdminTopNav() {
