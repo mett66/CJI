@@ -3,14 +3,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-/**
- * 환경변수 필요:
- * NEXT_PUBLIC_SUPABASE_URL
- * NEXT_PUBLIC_SUPABASE_ANON_KEY (관리자 전용 프로젝트에서만 노출/사용)
- *
- * RLS 사용 시 관리자 역할만 읽기 허용 정책이어야 합니다.
- */
-
 type PositionRow = {
   ref_code: string;
   exchange: string | null;
@@ -29,18 +21,15 @@ type PositionRow = {
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// 기본 새로고침 주기: 3분(180000ms)
+// 기본 새로고침 3분
 const DEFAULT_REFRESH_MS = 180_000;
 
 const number = (v: number | null | undefined, digits = 6) =>
   typeof v === "number" && isFinite(v) ? v.toFixed(digits) : "-";
-
 const compact = (v: number | null | undefined, digits = 2) =>
   typeof v === "number" && isFinite(v) ? v.toFixed(digits) : "-";
-
-function clsx(...xs: Array<string | false | null | undefined>) {
-  return xs.filter(Boolean).join(" ");
-}
+const clsx = (...xs: Array<string | false | null | undefined>) =>
+  xs.filter(Boolean).join(" ");
 
 export default function AdminBotsPage() {
   // ---- 상태 ----
@@ -66,7 +55,7 @@ export default function AdminBotsPage() {
   const [refreshMs, setRefreshMs] = useState<number>(DEFAULT_REFRESH_MS);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ---- Supabase 호출 헬퍼 ----
+  // ---- Supabase REST 호출 ----
   const sbFetch = useCallback(async (path: string, init?: RequestInit) => {
     const url = `${SUPABASE_URL}${path}`;
     const res = await fetch(url, {
@@ -85,26 +74,28 @@ export default function AdminBotsPage() {
     return res;
   }, []);
 
-  // ---- 데이터 로드 ----
+  // ---- KPI: 실행 중 봇 수 (bot_settings 기준) ----
   const loadUsersRunning = useCallback(async () => {
     try {
-      // count=exact 로 헤더에서 카운트 추출
       const res = await sbFetch(
-        `/rest/v1/users?is_running=eq.true&select=ref_code`,
+        `/rest/v1/bot_settings?is_running=eq.true&select=ref_code`,
         { headers: { Prefer: "count=exact" } }
       );
       const cr = res.headers.get("content-range"); // "0-9/123"
       const total = cr?.split("/")?.[1];
       setRunningUsers(total ? Number(total) : null);
     } catch (e: any) {
-      // KPI 실패는 치명적이지 않으니 콘솔만
-      console.warn("users running fetch failed:", e?.message || e);
+      console.warn("bot_settings running fetch failed:", e?.message || e);
       setRunningUsers(null);
     }
   }, [sbFetch]);
 
+  // ---- 최신 포지션(뷰) 쿼리 빌드 ----
   const buildPositionsQuery = useCallback(() => {
+    // 최신 1건만 모아둔 뷰 사용
+    const base = "/rest/v1/vw_latest_positions";
     const sp = new URLSearchParams();
+
     sp.set(
       "select",
       [
@@ -122,25 +113,31 @@ export default function AdminBotsPage() {
         "kst_minute",
       ].join(",")
     );
-    sp.set("order", "minute_at.desc");
-    sp.set("limit", "200"); // 관리자 뷰 1페이지 최대 200행
 
+    // 가독성 높은 정렬
+    sp.append("order", "ref_code.asc");
+    sp.append("order", "symbol.asc");
+
+    // 필터
     if (openOnly) sp.set("quantity", "gt.0");
-    if (missingOnly)
-      sp.append("or", "(entry_price.is.null,mark_price.is.null)");
-
     if (queryRefCode.trim()) sp.set("ref_code", `ilike.*${queryRefCode.trim()}*`);
     if (symbols.length) sp.set("symbol", `in.(${symbols.join(",")})`);
     if (side !== "ALL") sp.set("position_side", `eq.${side}`);
     if (exchange) sp.set("exchange", `eq.${exchange}`);
-
-    // 레버리지 범위
     if (levMin) sp.set("leverage", `gte.${levMin}`);
     if (levMax) sp.append("leverage", `lte.${levMax}`);
 
-    return `/rest/v1/position_snapshots?${sp.toString()}`;
+    // 결측 경고만 (entry_price OR mark_price 가 null)
+    if (missingOnly) {
+      // PostgREST의 or= 구문은 괄호 포함 문자열이여야 하며 URL 인코딩 필요
+      // URLSearchParams가 자동 인코딩하므로 문자열 그대로 넣으면 됩니다.
+      sp.set("or", "(entry_price.is.null,mark_price.is.null)");
+    }
+
+    return `${base}?${sp.toString()}`;
   }, [openOnly, missingOnly, queryRefCode, symbols, side, exchange, levMin, levMax]);
 
+  // ---- 데이터 로드 ----
   const loadPositions = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -159,11 +156,9 @@ export default function AdminBotsPage() {
 
   // 최초 로드 & 인터벌
   useEffect(() => {
-    // 첫 로드
     loadUsersRunning();
     loadPositions();
 
-    // 인터벌 설정
     if (timerRef.current) clearInterval(timerRef.current);
     if (refreshMs > 0) {
       timerRef.current = setInterval(() => {
@@ -177,7 +172,7 @@ export default function AdminBotsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshMs, buildPositionsQuery]);
 
-  // KPI 계산(클라이언트)
+  // KPI 계산
   const kpi = useMemo(() => {
     const openRows = rows.filter((r) => (r.quantity ?? 0) > 0);
     const usersWithOpen = new Set(openRows.map((r) => r.ref_code)).size;
@@ -195,18 +190,13 @@ export default function AdminBotsPage() {
     }
   }, [lastUpdatedIso]);
 
-  // 행 강조 규칙
   const rowClass = (r: PositionRow) => {
     const q = r.quantity ?? 0;
     const warn = q > 0 && (r.entry_price == null || r.mark_price == null);
-    return clsx(
-      "border-b last:border-b-0",
-      q === 0 && "opacity-60",
-      warn && "bg-yellow-50"
-    );
+    return clsx("border-b last:border-b-0", q === 0 && "opacity-60", warn && "bg-yellow-50");
   };
 
-  // 심볼 선택 입력 보조
+  // 심볼 입력 보조
   const [symbolInput, setSymbolInput] = useState("");
   const addSymbol = () => {
     const s = symbolInput.trim().toUpperCase();
@@ -214,17 +204,14 @@ export default function AdminBotsPage() {
     if (!symbols.includes(s)) setSymbols((xs) => [...xs, s]);
     setSymbolInput("");
   };
-  const removeSymbol = (s: string) =>
-    setSymbols((xs) => xs.filter((x) => x !== s));
+  const removeSymbol = (s: string) => setSymbols((xs) => xs.filter((x) => x !== s));
 
   return (
     <section className="space-y-6">
       <header className="flex items-end justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-semibold">봇 운영현황</h1>
-          <p className="text-sm text-gray-600">
-            유저별 포지션 스냅샷(최신)을 조회합니다. 3분마다 자동 새로고침.
-          </p>
+          <p className="text-sm text-gray-600">유저×심볼 최신 포지션 스냅샷. 자동 새로고침.</p>
         </div>
 
         <div className="flex items-center gap-2 text-sm">
@@ -238,13 +225,7 @@ export default function AdminBotsPage() {
             <option value={300000}>5분</option>
             <option value={0}>끄기(수동)</option>
           </select>
-          <button
-            className="ml-2 rounded px-3 py-1 border hover:bg-gray-50"
-            onClick={() => {
-              loadUsersRunning();
-              loadPositions();
-            }}
-          >
+          <button className="ml-2 rounded px-3 py-1 border hover:bg-gray-50" onClick={() => { loadUsersRunning(); loadPositions(); }}>
             지금 새로고침
           </button>
         </div>
@@ -294,11 +275,7 @@ export default function AdminBotsPage() {
 
           <div className="flex flex-col">
             <label className="text-xs text-gray-500">side</label>
-            <select
-              className="border rounded px-2 py-1"
-              value={side}
-              onChange={(e) => setSide(e.target.value as any)}
-            >
+            <select className="border rounded px-2 py-1" value={side} onChange={(e) => setSide(e.target.value as any)}>
               <option value="ALL">ALL</option>
               <option value="LONG">LONG</option>
               <option value="SHORT">SHORT</option>
@@ -307,55 +284,28 @@ export default function AdminBotsPage() {
 
           <div className="flex items-center gap-2">
             <label className="text-xs text-gray-500">exchange</label>
-            <input
-              className="border rounded px-2 py-1 w-28"
-              value={exchange}
-              onChange={(e) => setExchange(e.target.value)}
-            />
+            <input className="border rounded px-2 py-1 w-28" value={exchange} onChange={(e) => setExchange(e.target.value)} />
           </div>
 
           <div className="flex items-center gap-3">
             <label className="text-xs text-gray-500">레버리지</label>
-            <input
-              className="border rounded px-2 py-1 w-20"
-              placeholder="min"
-              value={levMin}
-              onChange={(e) => setLevMin(e.target.value)}
-            />
+            <input className="border rounded px-2 py-1 w-20" placeholder="min" value={levMin} onChange={(e) => setLevMin(e.target.value)} />
             <span className="text-gray-400">~</span>
-            <input
-              className="border rounded px-2 py-1 w-20"
-              placeholder="max"
-              value={levMax}
-              onChange={(e) => setLevMax(e.target.value)}
-            />
+            <input className="border rounded px-2 py-1 w-20" placeholder="max" value={levMax} onChange={(e) => setLevMax(e.target.value)} />
           </div>
 
           <div className="flex items-center gap-4">
             <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="size-4"
-                checked={openOnly}
-                onChange={(e) => setOpenOnly(e.target.checked)}
-              />
+              <input type="checkbox" className="size-4" checked={openOnly} onChange={(e) => setOpenOnly(e.target.checked)} />
               오픈만(수량 &gt; 0)
             </label>
             <label className="inline-flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="size-4"
-                checked={missingOnly}
-                onChange={(e) => setMissingOnly(e.target.checked)}
-              />
+              <input type="checkbox" className="size-4" checked={missingOnly} onChange={(e) => setMissingOnly(e.target.checked)} />
               결측 경고만
             </label>
           </div>
 
-          <button
-            className="ml-auto rounded px-3 py-1 border hover:bg-gray-50"
-            onClick={loadPositions}
-          >
+          <button className="ml-auto rounded px-3 py-1 border hover:bg-gray-50" onClick={loadPositions}>
             적용
           </button>
         </div>
@@ -363,16 +313,9 @@ export default function AdminBotsPage() {
         {symbols.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {symbols.map((s) => (
-              <span
-                key={s}
-                className="inline-flex items-center gap-2 text-xs border rounded-full px-2 py-1"
-              >
+              <span key={s} className="inline-flex items-center gap-2 text-xs border rounded-full px-2 py-1">
                 {s}
-                <button
-                  onClick={() => removeSymbol(s)}
-                  className="text-gray-500 hover:text-black"
-                  title="제거"
-                >
+                <button onClick={() => removeSymbol(s)} className="text-gray-500 hover:text-black" title="제거">
                   ✕
                 </button>
               </span>
@@ -427,7 +370,8 @@ export default function AdminBotsPage() {
                 const qty = r.quantity ?? 0;
                 const upnl = r.unrealized_pnl ?? 0;
                 const warn = qty > 0 && (r.entry_price == null || r.mark_price == null);
-                const updatedKst = r.kst_minute ?? new Date(r.minute_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
+                const updatedKst =
+                  r.kst_minute ?? new Date(r.minute_at).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" });
                 return (
                   <tr key={`${r.ref_code}-${r.symbol}-${r.position_side}-${i}`} className={rowClass(r)}>
                     <Td>{r.ref_code}</Td>
@@ -437,7 +381,9 @@ export default function AdminBotsPage() {
                       <span
                         className={clsx(
                           "px-2 py-0.5 rounded-full border",
-                          r.position_side === "LONG" ? "border-emerald-300 text-emerald-700" : "border-rose-300 text-rose-700"
+                          r.position_side === "LONG"
+                            ? "border-emerald-300 text-emerald-700"
+                            : "border-rose-300 text-rose-700"
                         )}
                       >
                         {r.position_side}
@@ -446,10 +392,7 @@ export default function AdminBotsPage() {
                     <Td align="right">{number(r.quantity, 6)}</Td>
                     <Td align="right">{number(r.entry_price, 6)}</Td>
                     <Td align="right">{number(r.mark_price, 6)}</Td>
-                    <Td
-                      align="right"
-                      className={clsx(upnl >= 0 ? "text-emerald-600" : "text-rose-600", "font-medium")}
-                    >
+                    <Td align="right" className={clsx(upnl >= 0 ? "text-emerald-600" : "text-rose-600", "font-medium")}>
                       {number(r.unrealized_pnl, 4)}
                     </Td>
                     <Td align="right">{compact(r.leverage, 2)}</Td>
@@ -468,15 +411,7 @@ export default function AdminBotsPage() {
   );
 }
 
-function KpiCard({
-  label,
-  value,
-  valueClass,
-}: {
-  label: string;
-  value: string | number;
-  valueClass?: string;
-}) {
+function KpiCard({ label, value, valueClass }: { label: string; value: string | number; valueClass?: string }) {
   return (
     <div className="rounded-xl border p-4 shadow-sm">
       <div className="text-xs text-gray-500">{label}</div>
@@ -484,7 +419,6 @@ function KpiCard({
     </div>
   );
 }
-
 function Th({ children, className }: { children: any; className?: string }) {
   return <th className={clsx("px-3 py-2 text-left font-medium", className)}>{children}</th>;
 }
@@ -497,8 +431,6 @@ function Td({
   align?: "left" | "right" | "center";
   className?: string;
 }) {
-  const alignCls =
-    align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
+  const alignCls = align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
   return <td className={clsx("px-3 py-2", alignCls, className)}>{children}</td>;
 }
-

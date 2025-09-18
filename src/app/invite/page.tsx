@@ -88,16 +88,7 @@ export default function InvitePage() {
       <TopBar title="친구초대" showBack />
       <main className="min-h-screen bg-[#f5f7fa] pb-32 w-full">
         <div className="px-2 pt-4 max-w-md mx-auto space-y-4">
-          {/* ✅ 오늘의 리워드 박스 */}
-<section className="bg-white rounded-xl shadow px-4 pt-3 pb-0">
-  <div className="flex justify-between items-center">
-    <h3 className="text-base font-bold">이번주의 리워드</h3>
-    <p className="text-xl font-bold">100 USDT</p>
-  </div>
-  <div className="mt-2 mb-3 text-center bg-gray-200 rounded-full px-4 py-1 text-[10px] text-gray-700">
-    이번주의 리워드가 다음주 월요일 오후 3시 이전에 자동 입금돼요.
-  </div>
-</section>
+
 
 
 
