@@ -199,27 +199,13 @@ export default function WithdrawPage() {
           </div>
         </div>
 
-        {/* ✅ 입금 안내 박스 */}
+        {/* ✅ 출금 안내 박스 */}
         <div className="bg-white border border-blue-200 rounded-xl px-4 py-4 space-y-2">
-          <p className="text-sm font-bold text-gray-800">입금 안내</p>
-          <p className="text-sm text-gray-600">
-            현재 보유 자산: <span className="font-semibold">{balance} USDT</span>
-          </p>
+          <p className="text-sm font-bold text-gray-800">출금 안내</p>
           <p className="text-xs text-gray-600">
             해당 주소는 <strong>POLYGON</strong> 네트워크만 지원합니다. <br />
             다른 네트워크로 입금 시 자산 복구가 <span className="text-red-500 font-semibold">불가능</span>합니다.
           </p>
-          <button
-            onClick={() => {
-              if (account?.address) {
-                navigator.clipboard.writeText(account.address);
-                alert("주소가 복사되었습니다.");
-              }
-            }}
-            className="w-full py-2 mt-2 bg-blue-500 text-white rounded-lg text-sm font-semibold"
-          >
-            주소 복사하기
-          </button>
         </div>
 
         {/* ✅ 출금 입력 */}

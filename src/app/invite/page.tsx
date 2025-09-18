@@ -15,9 +15,6 @@ interface Invitee {
   name: string;
   created_at: string;
   total_reward: number;
-  nft300: number;
-  nft3000: number;
-  nft10000: number;
 }
 
 export default function InvitePage() {
@@ -68,9 +65,6 @@ export default function InvitePage() {
             name: user.name || user.ref_code,
             created_at: user.created_at,
             total_reward: 0,
-            nft300: 0,
-            nft3000: 0,
-            nft10000: 0,
           }))
         );
       }

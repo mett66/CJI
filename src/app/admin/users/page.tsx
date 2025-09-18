@@ -66,10 +66,8 @@ export default function AdminUsersPage() {
                     .filter(
                       (col) =>
                         col !== "id" &&
-                        col !== "nickname" &&
                         col !== "created_at" &&
                         col !== "joined_at" &&
-                        col !== "role" &&
                         col !== "api_key" &&
                         col !== "secret_key" &&
                         col !== "symbol" &&
@@ -102,10 +100,8 @@ export default function AdminUsersPage() {
                       .filter(
                         (col) =>
                           col !== "id" &&
-                          col !== "nickname" &&
                           col !== "created_at" &&
                           col !== "joined_at" &&
-                          col !== "role" &&
                           col !== "api_key" &&
                           col !== "secret_key" &&
                           col !== "symbol" &&

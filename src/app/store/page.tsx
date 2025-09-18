@@ -6,7 +6,6 @@ import { useActiveAccount } from "thirdweb/react";
 import { getContract } from "thirdweb";
 import { balanceOf } from "thirdweb/extensions/erc20";
 import { polygon } from "thirdweb/chains";
-import { Home } from "lucide-react";
 
 import TopBar from "@/components/TopBar";
 import BottomNav from "@/components/BottomNav";
@@ -252,8 +251,8 @@ export default function HomePage() {
           <h3 className="text-sm font-bold text-blue-500 mb-2">프라멤버십 구독하기</h3>
 
           {[
-            { title: "100 프라", price: "100 USDT / 1개월", image: "/pass-300.png" },
-            { title: "300 프라", price: "300 USDT / 3개월 + 7일", image: "/pass-1800.png" },
+            { title: "100 프라", price: "1 USDT / 1개월", image: "/pass-300.png" },
+            { title: "300 프라", price: "2 USDT / 3개월 + 7일", image: "/pass-1800.png" },
             { title: "600 프라", price: "600 USDT / 6개월 + 1개월", image: "/pass-3600.png" },
             { title: "1200 프라", price: "1200 USDT / 12개월 + 3개월", image: "/pass-vip.png" },
           ].map((pass, idx) => {

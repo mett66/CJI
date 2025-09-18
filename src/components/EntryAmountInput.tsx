@@ -28,7 +28,7 @@ export default function EntryAmountModal({ onClose, selectedSymbol, walletAddres
         // 기본값 설정: 심볼 앞부분 추출 후 설정
         if (selectedSymbol.startsWith("BTC")) setEntryAmount("0.001");
         else if (selectedSymbol.startsWith("ETH")) setEntryAmount("0.01");
-        else if (selectedSymbol.startsWith("XRP")) setEntryAmount("200");
+        else if (selectedSymbol.startsWith("XRP")) setEntryAmount("50");
         else setEntryAmount("1");
       }
     };
