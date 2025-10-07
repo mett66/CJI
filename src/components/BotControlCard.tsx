@@ -109,7 +109,7 @@ export default function BotControlCard({
       {showStartModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-xl w-[90%] max-w-md p-6 space-y-6 shadow-lg">
-            <h2 className="text-lg font-bold text-center">프라봇을 시작합니다</h2>
+            <h2 className="text-lg font-bold text-center">천지인봇을 시작합니다</h2>
             <div className="text-sm text-gray-800 space-y-2">
               <p>
                 <span className="font-medium">거래심볼:</span> {symbol}

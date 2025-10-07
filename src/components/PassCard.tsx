@@ -51,7 +51,7 @@ export default function PassCard({ refCode }: { refCode: string }) {
     return (
       <div className="space-y-0">
         <div className="bg-white border border-blue-200 rounded-t-xl px-4 py-3">
-          <h3 className="text-sm font-semibold text-gray-900">구독중인 프라멤버십</h3>
+          <h3 className="text-sm font-semibold text-gray-900">구독중인 천지인멤버십</h3>
         </div>
         <div className="bg-white border border-blue-200 border-t-0 rounded-b-xl px-4 py-4 text-center">
           <p className="text-sm font-semibold text-gray-800 mb-2">구독중인 멤버십이 없어요</p>
@@ -82,12 +82,12 @@ export default function PassCard({ refCode }: { refCode: string }) {
   return (
     <div className="space-y-0">
       <div className="bg-white border border-blue-200 rounded-t-xl px-4 py-3">
-        <h3 className="text-sm font-semibold text-gray-900">구독중인 프라멤버십</h3>
+        <h3 className="text-sm font-semibold text-gray-900">구독중인 천지인멤버십</h3>
       </div>
       <div className="bg-white border border-blue-200 border-t-0 rounded-b-xl px-4 py-4 flex items-center gap-3">
         <img src="/pass-300.png" alt="PASS" className="w-12 h-12" />
         <div className="text-sm">
-          <p className="font-semibold text-gray-900">{row.pass_type ?? '프라'} 멤버십</p>
+          <p className="font-semibold text-gray-900">{row.pass_type ?? '천지인'} 멤버십</p>
           {created && <p className="text-xs text-gray-500">구입일 : {created}</p>}
 
           {warningText ? (

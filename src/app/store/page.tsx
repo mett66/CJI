@@ -135,7 +135,7 @@ export default function HomePage() {
         const numericKey = parseInt(leadNum(e.pass_type) || "", 10);
         const title =
           (e.pass_type ?? "").toString().trim() ||
-          (isFinite(numericKey) ? PASS_TITLE_BY_PRICE[numericKey] : "프라 멤버십");
+          (isFinite(numericKey) ? PASS_TITLE_BY_PRICE[numericKey] : "천지인 멤버십");
 
         setHasMembership(true);
         setCurrentPass({ title, expiresAt: e.pass_expired_at });
