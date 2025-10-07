@@ -1,4 +1,3 @@
-// src/app/bot/coinw-connect/page.tsx
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
@@ -29,15 +28,16 @@ function CoinWConnectInner() {
         .select("name, wallet_address")
         .eq("ref_code", refCode)
         .maybeSingle();
-      if (data?.name && !name) setName(data.name);
-      if (data?.wallet_address && !walletAddress) setWalletAddress(data.wallet_address);
+      if (data?.name) setName((prev) => prev || data.name);
+      if (data?.wallet_address) setWalletAddress((prev) => prev || data.wallet_address);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refCode]);
 
   const disabled = loading || !refCode || !apiKey || !secretKey;
 
-  async function handleSave() {
+  async function handleSave(e?: React.FormEvent) {
+    e?.preventDefault();
+
     if (!refCode) {
       alert("초대코드(ref)가 없습니다. 이전 단계에서 다시 시도해주세요.");
       return;
@@ -46,7 +46,6 @@ function CoinWConnectInner() {
       alert("API Key와 Secret Key를 모두 입력하세요.");
       return;
     }
-    // (선택) 지갑주소 간단 검증
     if (walletAddress && !/^0x[a-fA-F0-9]{40}$/.test(walletAddress)) {
       alert("지갑 주소 형식이 올바르지 않습니다. (0x로 시작 42자)");
       return;
@@ -57,9 +56,9 @@ function CoinWConnectInner() {
       const payload = {
         ref_code: refCode,
         name: name?.trim() || null,
-        wallet_address: walletAddress?.trim() || null,   // ✅ 주소 함께 저장
-        api_key: apiKey,
-        secret_key: secretKey,
+        wallet_address: walletAddress?.trim() || null,
+        api_key: apiKey.trim(),
+        secret_key: secretKey.trim(),
         symbol: "XRPUSDT",
         entry_amount: 50,
         updated_at: new Date().toISOString(),
@@ -102,46 +101,76 @@ function CoinWConnectInner() {
           </p>
         )}
 
-        <div className="space-y-3">
+        <form
+          autoComplete="off"
+          onSubmit={handleSave}
+          className="space-y-3"
+        >
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="이름 (선택)"
-            autoComplete="name"
+            autoComplete="off"
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            name="cw-name"
             className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
+
           <input
             value={walletAddress}
             onChange={(e) => setWalletAddress(e.target.value.trim())}
             placeholder="지갑 주소 (0x...)"
             autoComplete="off"
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            name="cw-wallet"
             className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
+
           <input
+            type="text"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value.trim())}
             placeholder="API Key"
             autoComplete="off"
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            name="cw-api-key"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-form-type="other"
             className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
+
           <input
-            type="password"
+            type="text"
             value={secretKey}
             onChange={(e) => setSecretKey(e.target.value.trim())}
             placeholder="Secret Key"
-            autoComplete="new-password"
+            autoComplete="off"
+            spellCheck={false}
+            autoCorrect="off"
+            autoCapitalize="off"
+            name="cw-secret-key"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            data-form-type="other"
             className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-200"
           />
-        </div>
 
-        <button
-          onClick={handleSave}
-          disabled={disabled}
-          className="mt-4 w-full py-2 bg-blue-600 text-white font-semibold rounded-lg
-                     hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? "저장 중..." : "저장하기"}
-        </button>
+          <button
+            type="submit"
+            disabled={disabled}
+            className="mt-2 w-full py-2 bg-blue-600 text-white font-semibold rounded-lg
+                       hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "저장 중..." : "저장하기"}
+          </button>
+        </form>
       </div>
     </div>
   );

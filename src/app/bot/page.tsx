@@ -174,13 +174,13 @@ export default function BotPage() {
   return (
     <>
       <main className="min-h-screen bg-[#f5f7fa] pb-24">
-        <TopBar title="프라봇" />
+        <TopBar title="천지인봇" />
         <div className="px-4 pt-4 space-y-3">
           {/* 배너: next/image 사용 */}
           <div className="w-full h-[100px] relative overflow-hidden rounded-xl">
             <Image
               src="/ad1.png"
-              alt="프라클 배너"
+              alt="coinw 배너"
               fill
               sizes="100vw"
               className="object-cover"

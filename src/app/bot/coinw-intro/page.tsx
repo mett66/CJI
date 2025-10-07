@@ -45,21 +45,7 @@ function CoinWIntroInner() {
               이 필요해요
             </span>
           </li>
-          <li className="flex items-start gap-2">
-            <Check className="w-4 h-4 mt-[2px] text-green-500" />
-            <span className="text-[14px] text-gray-800 leading-5">
-              CoinW 계정과{" "}
-              <Link
-                href="https://www.coinw.com/assets/api"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
-              >
-                API연동
-              </Link>
-              을 해야해요
-            </span>
-          </li>
+
           <li className="flex items-start gap-2">
             <Check className="w-4 h-4 mt-[2px] text-green-500" />
             <span className="text-[14px] text-gray-800 leading-5">
@@ -72,6 +58,21 @@ function CoinWIntroInner() {
                 선물 계정
               </Link>
               에 자산이 있어야해요
+            </span>
+          </li>
+                    <li className="flex items-start gap-2">
+            <Check className="w-4 h-4 mt-[2px] text-green-500" />
+            <span className="text-[14px] text-gray-800 leading-5">
+              CoinW 계정과{" "}
+              <Link
+                href="https://www.coinw.com/assets/api"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                API연동
+              </Link>
+              을 해야해요
             </span>
           </li>
         </ul>

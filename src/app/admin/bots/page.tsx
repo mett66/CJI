@@ -251,7 +251,7 @@ export default function AdminBotsPage() {
             <label className="text-xs text-gray-500">ref_code</label>
             <input
               className="border rounded px-2 py-1"
-              placeholder="FN10..."
+              placeholder="CJI1..."
               value={queryRefCode}
               onChange={(e) => setQueryRefCode(e.target.value)}
             />

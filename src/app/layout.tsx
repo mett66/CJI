@@ -5,8 +5,8 @@ import Providers from '@/components/Providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: '프라클',
-  description: '프라클 프로젝트',
+  title: '천지인',
+  description: '천지인',
   manifest: '/manifest.json',
 };
 

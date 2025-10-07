@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// 추천코드 생성 함수 (FN10100부터 증가)
+// 추천코드 생성 함수 (CJI1001부터 증가)
 async function generateNextReferralCode(): Promise<string> {
   const { data, error } = await supabase
     .from("users")
@@ -20,13 +20,13 @@ async function generateNextReferralCode(): Promise<string> {
     throw error;
   }
 
-  let newNumber = 10101;
-  if (data.length > 0 && data[0].ref_code?.startsWith("FN")) {
+  let newNumber = 1001;
+  if (data.length > 0 && data[0].ref_code?.startsWith("CJI")) {
     const lastNum = parseInt(data[0].ref_code.slice(2));
     newNumber = lastNum + 1;
   }
 
-  return `FN${newNumber}`;
+  return `CJI${newNumber}`;
 }
 
 export async function POST(req: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     wallet_address,
     email = "",  
     phone = "01000000000",
-    ref_by = "FN10101",
+    ref_by = "CJI1001",
     name = "", // ✅ name 파라미터 받음
   } = body;
 
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
 
   // 🧠 추천인 정보 확인 → 센터 ID 계산
 // 🧠 추천인 정보 확인 → 센터 ID 계산
-let center_id = "FN10101"; // 기본 센터
+let center_id = "CJI1001"; // 기본 센터
 const { data: referrer, error: referrerError } = await supabase
   .from("users")
   .select("center_id, ref_code")
@@ -80,7 +80,7 @@ if (referrerError) {
 }
 
 if (referrer) {
-  center_id = referrer.center_id || "FN10101";
+  center_id = referrer.center_id || "CJI1001";
 }
 
 
